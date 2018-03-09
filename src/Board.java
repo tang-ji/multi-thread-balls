@@ -1,123 +1,159 @@
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.util.ArrayList;
-import java.util.Random;
+import java.awt.event.*;
+import java.util.*;
 
 import javax.swing.*;
 
-public class Board extends JPanel implements MouseListener{
+public class Board extends JPanel implements ActionListener, ItemListener{
 	protected ArrayList<Ball> balls = new ArrayList<Ball>(20);
 	private Random r = new Random();
-	private Container container;
+	private Plan p;
 	private double theta = 10;
-	int count = 0;
+	int count = 0, mode = 0;
+	
+	private JButton add = new JButton("Add a ball");
+    private JButton remove = new JButton("Remove a ball");
+    private JToggleButton gravity = new JToggleButton("gravity");
+    private JToggleButton force = new JToggleButton("force");
+    private JToggleButton collision = new JToggleButton("collision");
+    private JToggleButton friction = new JToggleButton("friction");
 	
 	public Board(int width, int height) {
 
-//	      ball = new Ball(x, y, speedX, speedY, radius, red, green, blue);
-	      container = new Container(height, width, balls);
-
+	      p = new Plan(height, width, balls);
 	      this.setLayout(new BorderLayout());
-	      this.add(container, BorderLayout.CENTER);
-	      this.addMouseListener(this);
-
+	      this.add(p, BorderLayout.CENTER);
 	      start();
 
 	  }
 	
 	public void update() {
 		for (Ball ball : balls) {
-			ball.move(container, balls);
+			ball.move(p, balls);
 		}
 	}
 	
 	public void start() {
+	    Thread t = new Thread() {
+	        public void run() {
+	            while (true) {
+	                update();
+	                repaint();
+	                try {
+	                    Thread.sleep((int)theta);
+	                } catch (InterruptedException e) {
+	                }
+	            }
+	        }
+	    };
+	    t.start();
+	}
+	
+	public void Init() {
+		JFrame.setDefaultLookAndFeelDecorated(true);
 
-	      Thread t = new Thread() {
-	          public void run() {
+        //Create and set up the window.
+        JFrame frame = new JFrame("Balls Plan");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-	              while (true) {
+		Container cp = frame.getContentPane();
+		cp.setLayout(new BorderLayout());
 
-	                  update();
-	                  repaint();
-	                  try {
-	                      Thread.sleep((int)theta);
-	                  } catch (InterruptedException e) {
-	                  }
-	              }
-	          }
-	      };
-	      t.start();
-	  }
+		this.setLayout(new FlowLayout());
+		cp.add(this, BorderLayout.CENTER);
+
+		JPanel resultsSuper = new JPanel();
+		resultsSuper.setLayout(new GridLayout(2,1));
+
+		JPanel threads = new JPanel();
+		threads.setLayout(new FlowLayout());
+
+		JPanel control = new JPanel();
+		control.setLayout(new FlowLayout());
+		control.add(add);
+		control.add(remove);
+		control.add(gravity);
+		control.add(force);
+		control.add(collision);
+		control.add(friction);
+
+		JPanel results = new JPanel();
+		results.setLayout(new GridLayout(7,1));
+
+		control.add(results);
+
+
+		resultsSuper.add(control);
+		resultsSuper.add(threads);
+
+		cp.add(resultsSuper, BorderLayout.SOUTH);
+
+		add.addActionListener(this);
+		remove.addActionListener(this);
+		gravity.addItemListener(this);
+		force.addItemListener(this);
+		collision.addItemListener(this);
+		friction.addItemListener(this);
+
+		//Display the window.
+		frame.setSize(800,700);
+		frame.pack();
+		frame.setVisible(true);
+	}
 	
 	public static void main(String[] args) {
+	    javax.swing.SwingUtilities.invokeLater(new Runnable() {
+	        public void run() {
+	        	new Board(800, 600).Init();
+	        }
+	    });
+	}
 
-	      javax.swing.SwingUtilities.invokeLater(new Runnable() {
-	          public void run() {
-	              JFrame f = new JFrame("Balls Plan");
-	              f.setDefaultCloseOperation(f.EXIT_ON_CLOSE);
-	              f.setContentPane(new Board(800, 600));
-	              f.pack();
-	              f.setVisible(true);
-	          }
-	      });
-	  }
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == add){
+			count++;
+			balls.add(new Ball(r.nextInt(p.getWidth()), r.nextInt(p.getHeight()), 
+		    		r.nextInt(p.getWidth()) / 300, r.nextInt(p.getHeight()) / 300, 
+		    		50 * (r.nextDouble()) * p.getWidth(),
+		    		new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255)), count));
+		}
+		if (e.getSource() == remove){
+			if(balls.size() > 0) balls.remove(balls.size() - 1);
+		}
+	}
 
-	  @Override
-	  public void mouseClicked(MouseEvent e) {
-	      // TODO Auto-generated method stub
-	  }
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		if(collision.isSelected()){
+			p.collisionMode = true;
+	    } 
+		else {
+			p.collisionMode = false;
+	    }
+		
+		if(gravity.isSelected()){
+			p.gravityMode = true;
+		}
+		else {
+			p.gravityMode = false;
+		}
+		
+		if(force.isSelected()){
+			p.forceMode = true;
+		}
+		else {
+			p.forceMode = false;
+		}
+		
+		if(friction.isSelected()){
+			p.frictionMode = true;
+		}
+		else {
+			p.frictionMode = false;
+		}
+		
+	}
 
-	  @Override
-	  public void mouseEntered(MouseEvent e) {
-	      // TODO Auto-generated method stub
-	  }
 
-	  @Override
-	  public void mouseExited(MouseEvent e) {
-	      // TODO Auto-generated method stub
-	  }
-
-	  @Override
-	  public void mousePressed(MouseEvent e) {
-
-	      count++;
-	      balls.add(new Ball(r.nextInt(container.getWidth()), r.nextInt(container.getHeight()), 
-	    		  r.nextInt(container.getWidth()) / 200, r.nextInt(container.getHeight()) / 200, 
-	    		  50 * (r.nextDouble()) * container.getWidth(),
-	    		  new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255)), count));
-	  }
-
-	  @Override
-	  public void mouseReleased(MouseEvent e) {
-	      // TODO Auto-generated method stub
-	  }
-	
-//	private void collision() {  
-//        double[][] dis = new double[ball.length][ball.length];  
-//        for (int i = 0; i < ball.length; i++) {  
-//            for (int j = 0; j < ball.length; j++) {  
-//                dis[i][j] = Math.sqrt(Math.pow(ball[i].getX() - ball[j].getX(),  
-//                        2) + Math.pow(ball[i].getY() - ball[j].getY(), 2));  
-//            }  
-//        }  
-//        for (int i = 0; i < ball.length; i++) {  
-//            for (int j = i + 1; j < ball.length; j++) {  
-//                if (dis[i][j] < (ball[i].getR() + ball[j].getR()) / 2) {  
-//                    double t;  
-//                    t = ball[i].getVx();  
-//                    ball[i].setVx(ball[j].getVx());  
-//                    ball[j].setVx(t);  
-//                    t = ball[i].getVy();  
-//                    ball[i].setVy(ball[j].getVy());  
-//                    ball[j].setVy(t);  
-//                    double x2 = ball[j].getX() - ball[i].getX(), y2 = ball[j]  
-//                            .getY() - ball[i].getY();  
-//                    ball[j].setX(ball[i].getX() + x2);  
-//                    ball[j].setY(ball[j].getY() + y2);  
-//                } 
-//            }  
-//        }  
-//    } 
 }

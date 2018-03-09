@@ -18,25 +18,30 @@ public class Ball{
         this.id = id;
     }  
 	
-	public void move(Container container, ArrayList<Ball> balls) {
+	public void move(Plan p, ArrayList<Ball> balls) {
 		
 		x += vx;
 		y += vy;
-		getAcceleratedSpeed(balls);
+		getAcceleratedSpeed(balls, p);
 		vx += ax;
 		vy += ay;
+		if(p.frictionMode) {
+			vx *= 0.995;
+			vy *= 0.995;
+		}
 		
-		if (x <= 0 || x + r >= container.getWidth()) {  
+		if (x <= 0 || x + r >= p.getWidth()) {  
             vx = -vx;
             if (x < 0) x = 0;  
-            if (x > container.getWidth() - r) x = container.getWidth() - r;  
+            if (x > p.getWidth() - r) x = p.getWidth() - r;  
         }
 		
-		if (y <= 0 || y + r >= container.getHeight()) {  
+		if (y <= 0 || y + r >= p.getHeight()) {  
             vy = -vy;
             if (y < 0) y = 0;  
-            if (y > container.getHeight() - r)  y = container.getHeight() - r;  
+            if (y > p.getHeight() - r)  y = p.getHeight() - r;  
 		}
+		if(p.collisionMode) collision(balls);
     }
 	
 	public void draw(Graphics g) {
@@ -124,18 +129,47 @@ public class Ball{
 		return T / getExternalTotalMasse(balls);
 	}
 	
-	public void getAcceleratedSpeed(ArrayList<Ball> balls) {
-		if(balls.size() <= 1) {
-			ax = 0;
-			ay = 0;
-			return;
+	public void getAcceleratedSpeed(ArrayList<Ball> balls, Plan p) {
+		ax = 0;
+		ay = 0;
+		if(p.gravityMode) {
+			if(balls.size() <= 1) {
+				ax = 0;
+				ay = 0;
+				return;
+			}
+			double dx = getCentreX(balls) - x, dy = getCentreY(balls) - y;
+			double ds = Math.sqrt(dx * dx + dy * dy);
+			double a = getExternalTotalMasse(balls) * Math.pow(ds, -0.5) / 20000;
+			ax = a / ds * dx;
+			ay = a / ds * dy;
 		}
-		double dx = getCentreX(balls) - x, dy = getCentreY(balls) - y;
-		double ds = Math.sqrt(dx * dx + dy * dy);
-		double a = getExternalTotalMasse(balls) * Math.pow(ds, -0.5) / 1000;
-		ax = a / ds * dx;
-		ay = a / ds * dy;
+		
+		if(p.forceMode) {
+			ay += 0.5;
+		}
 	}
 	
-	
+	private void collision(ArrayList<Ball> balls) {  
+        for (Ball ball : balls) {
+        	if(this.id == ball.id) continue;
+        	double dis = Math.sqrt(Math.pow(ball.getX() - this.x, 2) + Math.pow(ball.getY() - this.y, 2));
+        	if(dis < ball.getR() + this.getR()) {
+        		double vtemp1 = this.getVx(), vtemp2 = ball.getVx();
+        		this.setVx(((this.getM() - ball.getM()) * vtemp1 + 2 * ball.getM() * vtemp2) / (ball.getM() + this.getM()));
+        		ball.setVx(((-this.getM() + ball.getM()) * vtemp2 + 2 * this.getM() * vtemp1) / (ball.getM() + this.getM()));
+        		double dx = ball.getX() - this.getX();
+        		
+        		vtemp1 = this.getVy();
+        		vtemp2 = ball.getVy();
+        		this.setVy(((this.getM() - ball.getM()) * vtemp1 + 2 * ball.getM() * vtemp2) / (ball.getM() + this.getM()));
+        		ball.setVy(((-this.getM() + ball.getM()) * vtemp2 + 2 * this.getM() * vtemp1) / (ball.getM() + this.getM()));
+        		double dy = ball.getY() - this.getY();
+        		
+        		ball.setX(this.getX() + (this.getR() + ball.getR()) * dx / dis + 0.01);
+        		ball.setY(this.getY() + (this.getR() + ball.getR()) * dy / dis + 0.01);
+        	}
+        }
+    } 
+
 }
