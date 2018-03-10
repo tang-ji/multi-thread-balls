@@ -12,6 +12,7 @@ public class Board extends JPanel implements ActionListener, ItemListener{
 	int count = 0, mode = 0;
 	
 	private JButton add = new JButton("Add a ball");
+	private JButton adds = new JButton("Add a stable ball");
     private JButton remove = new JButton("Remove a ball");
     private JToggleButton gravity = new JToggleButton("gravity");
     private JToggleButton force = new JToggleButton("force");
@@ -71,6 +72,7 @@ public class Board extends JPanel implements ActionListener, ItemListener{
 		JPanel control = new JPanel();
 		control.setLayout(new FlowLayout());
 		control.add(add);
+		control.add(adds);
 		control.add(remove);
 		control.add(gravity);
 		control.add(force);
@@ -89,6 +91,7 @@ public class Board extends JPanel implements ActionListener, ItemListener{
 		cp.add(resultsSuper, BorderLayout.SOUTH);
 
 		add.addActionListener(this);
+		adds.addActionListener(this);
 		remove.addActionListener(this);
 		gravity.addItemListener(this);
 		force.addItemListener(this);
@@ -115,8 +118,15 @@ public class Board extends JPanel implements ActionListener, ItemListener{
 			count++;
 			balls.add(new Ball(r.nextInt(p.getWidth()), r.nextInt(p.getHeight()), 
 		    		r.nextInt(p.getWidth()) / 300, r.nextInt(p.getHeight()) / 300, 
-		    		50 * (r.nextDouble()) * p.getWidth(),
+		    		10 * (r.nextDouble()) * p.getWidth(),
 		    		new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255)), count));
+		}
+		if (e.getSource() == adds){
+			count++;
+			balls.add(new Ball(p.getWidth() / 2, p.getHeight() / 2, 
+					0, 0, 
+					40 * (r.nextDouble()) * p.getWidth(),
+					new Color(0, 0, 0), count, true));
 		}
 		if (e.getSource() == remove){
 			if(balls.size() > 0) balls.remove(balls.size() - 1);

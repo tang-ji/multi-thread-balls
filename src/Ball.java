@@ -6,6 +6,7 @@ public class Ball{
 	private double x, y, vx, vy, ax, ay, r, m;
 	private Color color;
 	public int id;
+	public boolean stable = false;
 	
 	public Ball(double x, double y, double vx, double vy, double m, Color color, int id) {  
         this.x = x;  
@@ -18,8 +19,20 @@ public class Ball{
         this.id = id;
     }  
 	
+	public Ball(double x, double y, double vx, double vy, double m, Color color, int id, boolean stable) {  
+		this.x = x;  
+		this.y = y;  
+		this.vx = vx;  
+		this.vy = vy;  
+		this.m = m;
+		this.r = Math.pow(m, (double)1/3);
+		this.color = color;
+		this.id = id;
+		this.stable = stable;
+	}  
+	
 	public void move(Plan p, ArrayList<Ball> balls) {
-		
+		if(stable) return;
 		x += vx;
 		y += vy;
 		getAcceleratedSpeed(balls, p);
@@ -157,20 +170,27 @@ public class Ball{
         for (Ball ball : balls) {
         	if(this.id == ball.id) continue;
         	double dis = Math.sqrt(Math.pow(ball.getX() - this.x, 2) + Math.pow(ball.getY() - this.y, 2));
+        	double dx = ball.getX() - this.getX();
+        	double dy = ball.getY() - this.getY();
         	if(dis < ball.getR() + this.getR()) {
+        		if(ball.stable) {
+        			this.setX(ball.getX() - (this.getR() + ball.getR()) * dx / dis + 0.0001);
+        			this.setY(ball.getY() - (this.getR() + ball.getR()) * dy / dis + 0.0001);
+        			this.setVx(-this.getVx());
+        			this.setVy(-this.getVy());
+        			continue;
+        		}
         		double vtemp1 = this.getVx(), vtemp2 = ball.getVx();
         		this.setVx(((this.getM() - ball.getM()) * vtemp1 + 2 * ball.getM() * vtemp2) / (ball.getM() + this.getM()));
         		ball.setVx(((-this.getM() + ball.getM()) * vtemp2 + 2 * this.getM() * vtemp1) / (ball.getM() + this.getM()));
-        		double dx = ball.getX() - this.getX();
         		
         		vtemp1 = this.getVy();
         		vtemp2 = ball.getVy();
         		this.setVy(((this.getM() - ball.getM()) * vtemp1 + 2 * ball.getM() * vtemp2) / (ball.getM() + this.getM()));
         		ball.setVy(((-this.getM() + ball.getM()) * vtemp2 + 2 * this.getM() * vtemp1) / (ball.getM() + this.getM()));
-        		double dy = ball.getY() - this.getY();
         		
-        		ball.setX(this.getX() + (this.getR() + ball.getR()) * dx / dis + 0.01);
-        		ball.setY(this.getY() + (this.getR() + ball.getR()) * dy / dis + 0.01);
+        		ball.setX(this.getX() + (this.getR() + ball.getR()) * dx / dis + 0.0001);
+        		ball.setY(this.getY() + (this.getR() + ball.getR()) * dy / dis + 0.0001);
         	}
         }
     } 
