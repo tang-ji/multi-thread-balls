@@ -36,6 +36,20 @@ public class Ball{
 		x += vx;
 		y += vy;
 		getAcceleratedSpeed(balls, p);
+		if (x <= 0 || x + r >= p.getWidth()) {  
+			vx = -vx;
+			ax = 0;
+			if (x < 0) x = 0;  
+			if (x > p.getWidth() - r) x = p.getWidth() - r;  
+		}
+		
+		if (y <= 0 || y + r >= p.getHeight()) {  
+			vy = -vy;
+			ay = 0;
+			if (y < 0) y = 0;  
+			if (y > p.getHeight() - r)  y = p.getHeight() - r;  
+		}
+		if(p.collisionMode) collision(balls);
 		vx += ax;
 		vy += ay;
 		if(p.frictionMode) {
@@ -43,18 +57,6 @@ public class Ball{
 			vy *= 0.995;
 		}
 		
-		if (x <= 0 || x + r >= p.getWidth()) {  
-            vx = -vx;
-            if (x < 0) x = 0;  
-            if (x > p.getWidth() - r) x = p.getWidth() - r;  
-        }
-		
-		if (y <= 0 || y + r >= p.getHeight()) {  
-            vy = -vy;
-            if (y < 0) y = 0;  
-            if (y > p.getHeight() - r)  y = p.getHeight() - r;  
-		}
-		if(p.collisionMode) collision(balls);
     }
 	
 	public void draw(Graphics g) {
@@ -162,7 +164,7 @@ public class Ball{
 		}
 		
 		if(p.forceMode) {
-			ay += 0.5;
+			ay += 0.2;
 		}
 	}
 	
@@ -173,6 +175,8 @@ public class Ball{
         	double dx = ball.getX() - this.getX();
         	double dy = ball.getY() - this.getY();
         	if(dis < ball.getR() + this.getR()) {
+        		ax = 0;
+        		ay = 0;
         		if(ball.stable) {
         			this.setX(ball.getX() - (this.getR() + ball.getR()) * dx / dis + 0.0001);
         			this.setY(ball.getY() - (this.getR() + ball.getR()) * dy / dis + 0.0001);

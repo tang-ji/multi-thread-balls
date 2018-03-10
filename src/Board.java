@@ -8,7 +8,7 @@ public class Board extends JPanel implements ActionListener, ItemListener{
 	protected ArrayList<Ball> balls = new ArrayList<Ball>(20);
 	private Random r = new Random();
 	private Plan p;
-	private double theta = 10;
+	private double theta = 8;
 	int count = 0, mode = 0;
 	
 	private JButton add = new JButton("Add a ball");
