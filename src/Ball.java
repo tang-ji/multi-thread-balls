@@ -138,11 +138,14 @@ public class Ball{
 				ay = 0;
 				return;
 			}
-			double dx = getCentreX(balls) - x, dy = getCentreY(balls) - y;
-			double ds = Math.sqrt(dx * dx + dy * dy);
-			double a = getExternalTotalMasse(balls) * Math.pow(ds, -0.5) / 20000;
-			ax = a / ds * dx;
-			ay = a / ds * dy;
+			for(Ball b : balls) {
+				if(this.id == b.id) continue;
+				double dx = b.getX() - x, dy = b.getY() - y;
+				double ds = Math.sqrt(dx * dx + dy * dy);
+				double a = b.getM() * Math.pow(ds, -0.5) / 20000;
+				ax += a / ds * dx;
+				ay += a / ds * dy;
+			}
 		}
 		
 		if(p.forceMode) {
