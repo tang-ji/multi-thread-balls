@@ -6,6 +6,7 @@ import javax.swing.*;
 
 public class Board extends JPanel implements ActionListener, ItemListener{
 	protected ArrayList<Ball> balls = new ArrayList<Ball>(20);
+	protected ArrayList<BallThread> bts = new ArrayList<BallThread>(20);
 	private Random r = new Random();
 	private Plan p;
 	private double theta = 8;
@@ -28,17 +29,17 @@ public class Board extends JPanel implements ActionListener, ItemListener{
 
 	  }
 	
-	public void update() {
+	/*public void update() {
 		for (Ball ball : balls) {
 			ball.move(p, balls);
 		}
-	}
+	}*/
 	
 	public void start() {
 	    Thread t = new Thread() {
 	        public void run() {
 	            while (true) {
-	                update();
+	                //update();
 	                repaint();
 	                try {
 	                    Thread.sleep((int)theta);
@@ -104,32 +105,55 @@ public class Board extends JPanel implements ActionListener, ItemListener{
 		frame.setVisible(true);
 	}
 	
-	public static void main(String[] args) {
-	    javax.swing.SwingUtilities.invokeLater(new Runnable() {
-	        public void run() {
-	        	new Board(800, 600).Init();
-	        }
-	    });
+	public class BallThread extends Thread{
+		Ball ball;		
+		public BallThread(Ball ball){
+			this.ball = ball;			
+		}
+		@Override
+		public void run(){
+			while (true){
+				ball.move(p, balls);
+				try {  
+	                Thread.sleep((int)theta);  
+	            } catch (InterruptedException e) {  
+	                e.printStackTrace();  
+	            } 
+			}
+		}
 	}
-
+	@SuppressWarnings("deprecation")
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == add){
 			count++;
-			balls.add(new Ball(r.nextInt(p.getWidth()), r.nextInt(p.getHeight()), 
+			Ball ball = new Ball(r.nextInt(p.getWidth()), r.nextInt(p.getHeight()), 
 		    		r.nextInt(p.getWidth()) / 300, r.nextInt(p.getHeight()) / 300, 
 		    		10 * (r.nextDouble()) * p.getWidth(),
-		    		new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255)), count));
+		    		new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255)), count);
+			balls.add(ball);
+			BallThread bt = new BallThread(ball);
+			bts.add(bt);
+			bt.start();
 		}
 		if (e.getSource() == adds){
 			count++;
-			balls.add(new Ball(p.getWidth() / 2, p.getHeight() / 2, 
+			Ball ball = new Ball(p.getWidth() / 2, p.getHeight() / 2, 
 					0, 0, 
 					40 * (r.nextDouble()) * p.getWidth(),
-					new Color(0, 0, 0), count, true));
+					new Color(0, 0, 0), count, true);
+			balls.add(ball);
+			BallThread bt = new BallThread(ball);
+			bts.add(bt);
+			bt.start();
 		}
 		if (e.getSource() == remove){
-			if(balls.size() > 0) balls.remove(balls.size() - 1);
+			if(balls.size() > 0) {
+				bts.get(bts.size()-1).stop();
+				balls.remove(balls.size() - 1);
+				
+				bts.remove(bts.size()-1);
+			}
 		}
 	}
 

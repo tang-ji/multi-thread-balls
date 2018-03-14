@@ -157,7 +157,7 @@ public class Ball{
 				if(this.id == b.id) continue;
 				double dx = b.getX() - x, dy = b.getY() - y;
 				double ds = Math.sqrt(dx * dx + dy * dy);
-				double a = b.getM() * Math.pow(ds, -0.5) / 20000;
+				double a = b.getM() * Math.pow(ds, -0.5) / 25000;
 				ax += a / ds * dx;
 				ay += a / ds * dy;
 			}
@@ -169,34 +169,38 @@ public class Ball{
 	}
 	
 	private void collision(ArrayList<Ball> balls) {  
-        for (Ball ball : balls) {
-        	if(this.id == ball.id) continue;
-        	double dis = Math.sqrt(Math.pow(ball.getX() - this.x, 2) + Math.pow(ball.getY() - this.y, 2));
-        	double dx = ball.getX() - this.getX();
-        	double dy = ball.getY() - this.getY();
-        	if(dis < ball.getR() + this.getR()) {
-        		ax = 0;
-        		ay = 0;
-        		if(ball.stable) {
-        			this.setX(ball.getX() - (this.getR() + ball.getR()) * dx / dis + 0.0001);
-        			this.setY(ball.getY() - (this.getR() + ball.getR()) * dy / dis + 0.0001);
-        			this.setVx(-this.getVx());
-        			this.setVy(-this.getVy());
+		for (Ball ball:balls){
+			if (this.id == ball.id) continue;
+			double dis = Math.sqrt(Math.pow(ball.getX() - this.x, 2) + Math.pow(ball.getY() - this.y, 2));			
+        	double dx = -ball.getX() + this.getX();
+        	double dy = -ball.getY() + this.getY();
+        	double sin = dy/dis, cos = dx/dis;
+        	if (dis <= ball.getR() + this.getR()){
+        		
+        		if (ball.stable){
+        			this.setX(ball.getX() - (this.getR() + ball.getR()) * (-dx) / dis + 0.0001);
+        			this.setY(ball.getY() - (this.getR() + ball.getR()) * (-dy) / dis + 0.0001);
+        			double Vx = this.getVx(), Vy = this.getVy();
+        			double Vr = Vx*cos+Vy*sin, Vt = Vx*sin-Vy*cos;
+        			this.setVx(-Vr*cos+Vt*sin);
+        			this.setVy(-Vr*sin-Vt*cos);
         			continue;
         		}
-        		double vtemp1 = this.getVx(), vtemp2 = ball.getVx();
-        		this.setVx(((this.getM() - ball.getM()) * vtemp1 + 2 * ball.getM() * vtemp2) / (ball.getM() + this.getM()));
-        		ball.setVx(((-this.getM() + ball.getM()) * vtemp2 + 2 * this.getM() * vtemp1) / (ball.getM() + this.getM()));
-        		
-        		vtemp1 = this.getVy();
-        		vtemp2 = ball.getVy();
-        		this.setVy(((this.getM() - ball.getM()) * vtemp1 + 2 * ball.getM() * vtemp2) / (ball.getM() + this.getM()));
-        		ball.setVy(((-this.getM() + ball.getM()) * vtemp2 + 2 * this.getM() * vtemp1) / (ball.getM() + this.getM()));
-        		
-        		ball.setX(this.getX() + (this.getR() + ball.getR()) * dx / dis + 0.0001);
-        		ball.setY(this.getY() + (this.getR() + ball.getR()) * dy / dis + 0.0001);
+        		double V1x = ball.getVx(), V1y = ball.getVy(), V2x = this.getVx(), V2y = this.getVy();
+        		double m1 = ball.getM(), m2 = this.getM();
+        		double V1r = V1x*cos+V1y*sin, V2r = V2x*cos+V2y*sin;
+        		double V1t = V1x*sin-V1y*cos, V2t = V2x*sin-V2y*cos;
+        		double V1r_prime = ((m1-m2)*V1r+2*m2*V2r)/(m1+m2);
+        		double V2r_prime = ((m2-m1)*V2r+2*m1*V1r)/(m1+m2);
+        		ball.setVx(V1r_prime*cos+V1t*sin);
+        		ball.setVy(V1r_prime*sin-V1t*cos);
+        		this.setVx(V2r_prime*cos+V2t*sin);
+        		this.setVy(V2r_prime*sin-V2t*cos);
+        		ball.setX(this.getX() + (this.getR() + ball.getR()) * (-dx) / dis + 0.0001);
+        		ball.setY(this.getY() + (this.getR() + ball.getR()) * (-dy)/ dis + 0.0001);
         	}
-        }
+		}
+        
     } 
 
 }
